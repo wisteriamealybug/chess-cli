@@ -1,5 +1,10 @@
 use std::str::FromStr;
 
+pub enum Colour {
+    White,
+    Black,
+}
+
 enum PieceType {
     Pawn,
     Rook,
@@ -124,7 +129,8 @@ impl PieceType {
     }
 }
 
-struct UnknownPieceError;
+#[derive(Debug)]
+pub struct UnknownPieceError;
 
 impl FromStr for PieceType {
     type Err = UnknownPieceError;
@@ -145,17 +151,21 @@ impl FromStr for PieceType {
 pub struct Piece {
     x: usize,
     y: usize,
-    piece_type: PieceType,
-    color: String,
+    pub piece_type: PieceType,
+    pub colour: Colour,
 }
 impl Piece {
-    pub fn new(new_type: String, new_color: String) -> Result<Self, UnknownPieceError> {
+    pub fn new(new_type: String, new_colour: String) -> Result<Self, UnknownPieceError> {
         match PieceType::from_str(new_type.as_str()) {
             Ok(t) => Ok(Self {
                 x: 0,
                 y: 0,
                 piece_type: t,
-                color: new_color,
+                colour: if new_colour.to_lowercase().trim() == "white" {
+                    Colour::White
+                } else {
+                    Colour::Black
+                },
             }),
             Err(e) => Err(e),
         }

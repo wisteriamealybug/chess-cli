@@ -1,42 +1,42 @@
-use crate::pieces::Piece;
+use crate::pieces::{Colour, Piece};
 
-struct Board {
+pub struct Board {
     squares: [[bool; 8]; 8],
     white_pieces: Vec<Piece>,
     black_pieces: Vec<Piece>,
-    intial_layout: [[String; 8]; 8],
 }
 impl Board {
-    fn new(board_layout: [[String; 8]; 8]) -> Self {
-        let squares = [[false; 8]; 8];
+    pub fn new(board_layout: [[String; 8]; 8]) -> Self {
+        let new_squares = [[false; 8]; 8];
 
-        Self {
-            squares: squares,
+        let mut s = Self {
+            squares: new_squares,
             white_pieces: Vec::new(),
             black_pieces: Vec::new(),
-            intial_layout: board_layout,
-        }
+        };
+        s.setup(board_layout);
+        s
     }
 
-    fn setup(&mut self) {
-        if self.white_pieces.is_empty() && self.black_pieces.is_empty() {
-            for i in 0..8 {
-                let mut _piece = Piece::new(String::from("pawn"), String::from("white"));
-                _piece.move_piece(i, 1);
-                self.white_pieces.push(_piece);
+    pub fn parse_layout(&self, piece_string: &str) -> Piece {
+        let mut s: Vec<&str> = piece_string.split(" ").collect();
+        Piece::new(
+            String::from(s.pop().unwrap()),
+            String::from(s.pop().unwrap()),
+        )
+        .unwrap()
+    }
 
-                let mut _piece = Piece::new(String::from("pawn"), String::from("black"));
-                _piece.move_piece(i, 6);
-                self.black_pieces.push(_piece);
-            }
-        }
-
-        for i in 0..8 {
-            for j in 0..1 {
-                self.squares[j][i] = true;
-            }
-            for j in 6..8 {
-                self.squares[j][i] = true;
+    fn setup(&mut self, board_layout: [[String; 8]; 8]) {
+        for row in 0..8 {
+            for col in 0..8 {
+                let mut s = self.parse_layout(&board_layout[row][col]);
+                s.move_piece(col, row);
+                self.squares[row][col] = true;
+                match s.colour {
+                    Colour::White => self.white_pieces.push(s),
+                    Colour::Black => self.black_pieces.push(s),
+                }
             }
         }
     }
