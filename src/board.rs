@@ -18,7 +18,7 @@ impl Board {
         s
     }
 
-    pub fn parse_layout(&self, piece_string: &str) -> Piece {
+    fn parse_layout(&self, piece_string: &str) -> Piece {
         let mut s: Vec<&str> = piece_string.split(" ").collect();
         Piece::new(
             String::from(s.pop().unwrap()),
@@ -27,11 +27,11 @@ impl Board {
         .unwrap()
     }
 
-    fn setup(&mut self, board_layout: [[String; 8]; 8]) {
+    pub fn setup(&mut self, board_layout: [[String; 8]; 8]) {
         for row in 0..8 {
             for col in 0..8 {
                 let mut s = self.parse_layout(&board_layout[row][col]);
-                s.move_piece(col, row);
+                s.set_piece_loc(col, row);
                 self.squares[row][col] = true;
                 match s.colour {
                     Colour::White => self.white_pieces.push(s),
@@ -39,5 +39,34 @@ impl Board {
                 }
             }
         }
+    }
+
+    pub fn move_piece(&mut self, piece: &mut Piece, end_pos: (usize, usize)) -> bool {
+        let start_pos = (piece.x, piece.y);
+        if piece.move_piece(end_pos) {
+            self.squares[start_pos.1][start_pos.0] = false;
+            if self.squares[end_pos.1][end_pos.0] {
+                match piece.colour {
+                    Colour::Black => {
+                        self.white_pieces.swap_remove(
+                            self.white_pieces
+                                .iter()
+                                .position(|enemy| enemy.x == end_pos.0 && enemy.y == end_pos.1)
+                                .unwrap(),
+                        );
+                    }
+                    Colour::White => {
+                        self.black_pieces.swap_remove(
+                            self.black_pieces
+                                .iter()
+                                .position(|enemy| enemy.x == end_pos.0 && enemy.y == end_pos.1)
+                                .unwrap(),
+                        );
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }

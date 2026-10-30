@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, usize};
 
 pub enum Colour {
     White,
@@ -14,23 +14,24 @@ enum PieceType {
     Queen,
 }
 impl PieceType {
-    fn valid_moves(&self, x: usize, y: usize, color: String) -> Vec<(usize, usize)> {
+    fn valid_moves(&self, x: usize, y: usize, colour: &Colour) -> Vec<(usize, usize)> {
         // Awful match statement consider another method
         let mut moves = Vec::new();
         match self {
-            Self::Pawn => {
-                if color == "black" {
+            Self::Pawn => match colour {
+                Colour::White => {
                     moves.push((x, y + 1));
                     if y == 1 {
                         moves.push((x, y + 2));
                     }
-                } else {
+                }
+                Colour::Black => {
                     moves.push((x, y - 1));
                     if y == 6 {
                         moves.push((x, y - 2));
                     }
                 }
-            }
+            },
             Self::Rook => {
                 for i in 0..8 {
                     if i != x {
@@ -149,8 +150,8 @@ impl FromStr for PieceType {
 }
 
 pub struct Piece {
-    x: usize,
-    y: usize,
+    pub x: usize,
+    pub y: usize,
     pub piece_type: PieceType,
     pub colour: Colour,
 }
@@ -170,8 +171,17 @@ impl Piece {
             Err(e) => Err(e),
         }
     }
-    pub fn move_piece(&mut self, x: usize, y: usize) {
+    pub fn set_piece_loc(&mut self, x: usize, y: usize) {
         self.x = x;
         self.y = y;
+    }
+    pub fn move_piece(&mut self, end_pos: (usize, usize)) -> bool {
+        let valid_moves = self.piece_type.valid_moves(self.x, self.y, &self.colour);
+        if valid_moves.contains(&end_pos) {
+            self.x = end_pos.0;
+            self.y = end_pos.1;
+            return true;
+        }
+        return false;
     }
 }
